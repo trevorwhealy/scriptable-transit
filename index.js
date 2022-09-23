@@ -1,39 +1,60 @@
 const GOOGLE_MAPS_API_KEY = "XXX";
 
+const route_1_label = "";
+const route_1_origin = "";
+const route_1_destination = "";
+
+const route_2_label = "";
+const route_2_origin = "";
+const route_2_destination = "";
+
 const routes = [
   {
-    label: "XXX",
+    label: route_1_label,
     origin_destination: [
-      "XXX",
-      "XXX",
-    ], // [origin, destination]
+      route_1_origin,
+      route_1_destination,
+    ],
   },
-    {
-    label: "XXX",
+  {
+    label: route_2_label,
     origin_destination: [
-      "XXX",
-      "XXX",
-
-    ], // [origin, destination]
+      route_2_origin,
+      route_2_destination,
+    ],
   },
-/*  {
-    label: "Hunter, Canal",
-    origin_destination: [
-      "68 St - Hunter College, New York, NY 10021",
-      "Canal St, New York, NY 10013",
-    ], // [origin, destination]
-  }, */
+  // Example
+  // {
+  //   label: "Morning Commute",
+  //   origin_destination: [
+  //     "68 St - Hunter College",
+  //     "Canal St, New York, NY 10013",
+  //   ],
+  // },
 ];
 
+// Light-Mode Colors 1st, Dark-Mode Colors 2nd
 const colors = {
-  widgetBg: Color.dynamic(new Color("#EAECED"), new Color("#22262C")),
+  widgetBg: Color.dynamic(
+    new Color("#EAECED"),
+    new Color("#22262C")
+  ),
   cellBackgroundColor: Color.dynamic(
     new Color("#D0D2D4"),
     new Color("#3C4044")
   ),
-  update: Color.dynamic(new Color("#676767"), new Color("#A1A1A6")),
-  labelTextColor: Color.dynamic(new Color("#00204F"), new Color("#88C4C9")),
-  cellTextColor: Color.dynamic(new Color("#212121"), new Color("#FFFFFF")),
+  update: Color.dynamic(
+    new Color("#676767"),
+    new Color("#A1A1A6")
+  ),
+  labelTextColor: Color.dynamic(
+    new Color("#00204F"),
+    new Color("#88C4C9")
+  ),
+  cellTextColor: Color.dynamic(
+    new Color("#212121"),
+    new Color("#FFFFFF")
+  ),
 };
 
 const widget = new ListWidget();
@@ -53,18 +74,24 @@ function composeGoogleMapsRequestUrl(origin, destination) {
 }
 
 async function getStopData(origin, destination) {
-  const googleMapsRequestUrl = composeGoogleMapsRequestUrl(origin, destination);
-  console.log(googleMapsRequestUrl)
-  const googleMapsRequest = new Request(googleMapsRequestUrl);
-  const json = await googleMapsRequest.loadJSON();
-//  console.log(json)
-  return json
+  const googleMapsRequestUrl = 
+    composeGoogleMapsRequestUrl(
+        origin,
+        destination
+    );
+  const googleMapsRequest = new Request(
+    googleMapsRequestUrl
+  );
+  return googleMapsRequest.loadJSON();
 }
 
 function getStopTimes(stopData) {
   const routes = stopData.routes.filter((route) => {
     // No Multi Modal Trips
-    return route.legs.length === 1 && route.legs[0].steps.length === 3
+    return (
+      route.legs.length === 1 &&
+      route.legs[0].steps.length === 3
+    );
   });
 
   const routeTimes = routes.map((route) => {
@@ -106,18 +133,26 @@ function createRouteScheduleStack(stopTimes, color, label) {
   });
 }
 
-const promises = [];
-for (var i = 0; i < routes.length; i++) {
+let i = 0;
+let len = routes.length;
+
+for (i; i < len; i++) {
   const route = routes[i];
   const [origin, destination] = route.origin_destination;
-  const promise = await getStopData(origin, destination).then((stopData) => {
-    const stopTimes = getStopTimes(stopData);
-    createRouteScheduleStack(stopTimes.slice(0, 3), route.color, route.label);
-    widget.addSpacer();
-  });
+
+  const stopData = await getStopData(origin, destination);
+  const stopTimes = getStopTimes(stopData);
+  createRouteScheduleStack(
+    stopTimes.slice(0, 3),
+    route.color,
+    route.label
+  );
+
+  widget.addSpacer();
 }
 
-let lastUpdatedAt = "Last updated " + new Date().toLocaleTimeString();
+let lastUpdatedAt =
+  "Last updated " + new Date().toLocaleTimeString();
 const lastUpdatedAtText = widget.addText(lastUpdatedAt);
 lastUpdatedAtText.textColor = colors.updated;
 lastUpdatedAtText.font = Font.lightSystemFont(8);
