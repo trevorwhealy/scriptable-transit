@@ -41,7 +41,7 @@ const colors = {
   ),
   labelTextColor: Color.dynamic(
     new Color("#00204F"),
-    new Color("#88C4C9")
+    new Color("#FFF")
   ),
   cellTextColor: Color.dynamic(
     new Color("#212121"),
@@ -77,6 +77,20 @@ async function getStopData(origin, destination) {
   return googleMapsRequest.loadJSON();
 }
 
+function getLineColor(route) {
+  if (
+    route &&
+    route.legs &&
+    route.legs[0] &&
+    route.legs[0].steps &&
+    route.legs[0].steps[1] &&
+    route.legs[0].steps[1].transit_details &&
+    route.legs[0].steps[1].transit_details.line.color
+  ) {
+    return new Color(route.legs[0].steps[1].transit_details.line.color)
+  }
+}
+
 function getStopTimes(stopData) {
   const routes = stopData.routes.filter((route) => {
     // No Multi Modal Trips
@@ -87,13 +101,17 @@ function getStopTimes(stopData) {
   });
 
   const routeTimes = routes.map((route) => {
-    return route.legs[0].departure_time.text;
-  });
+    const lineColor = getLineColor(route)
+    return {
+      time: route.legs[0].departure_time.text,
+      color: lineColor
+    }
+  })
 
   return routeTimes;
 }
 
-function createRouteScheduleStack(stopTimes, color, label) {
+function createRouteScheduleStack(stopTimes, _color, label) {
   let scheduleLabel = widget.addText(label);
   scheduleLabel.textColor = colors.labelTextColor;
   scheduleLabel.font = Font.boldSystemFont(14);
@@ -101,9 +119,10 @@ function createRouteScheduleStack(stopTimes, color, label) {
   let row = widget.addStack();
   row.setPadding(4, 0, 0, 0);
 
-  stopTimes.forEach((_time, idx) => {
+  stopTimes.forEach(({time: _time, color}, idx) => {
+    
     let cell = row.addStack();
-    cell.backgroundColor = colors.cellBackgroundColor;
+    cell.backgroundColor = color || colors.cellBackgroundColor
     cell.setPadding(2, 3, 2, 3);
     cell.cornerRadius = 4;
 

@@ -33,7 +33,7 @@ const routes = [
   // },
 ];
 
-// Light-Mode Colors 1st, Dark-Mode Colors 2nd
+// Light-Mode 1st, Dark-Mode 2nd
 const colors = {
   widgetBg: Color.dynamic(
     new Color("#EAECED"),
