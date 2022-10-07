@@ -82,16 +82,23 @@ function getLineColors(route) {
     route &&
     route.legs &&
     route.legs[0] &&
-    route.legs[0].steps &&
-    route.legs[0].steps[1] &&
-    route.legs[0].steps[1].transit_details &&
-    route.legs[0].steps[1].transit_details.line.color
+    route.legs[0].steps
   ) {
-    return {
-      lineColor: new Color(route.legs[0].steps[1].transit_details.line.color),
-      textColor: new Color(route.legs[0].steps[1].transit_details.line.text_color)
+    const step = route.legs[0].steps.find(step => 
+      step && 
+      step.transit_details && 
+      step.transit_details.line && 
+      step.transit_details.line.color
+    )
+    
+    if (step) {
+      return {
+        lineColor: new Color(step.transit_details.line.color),
+        textColor: new Color(step.transit_details.line.text_color)
+      }
     }
   }
+  
   return {}
 }
 
@@ -100,7 +107,7 @@ function getStopTimes(stopData) {
     // No Multi Modal Trips
     return (
       route.legs.length === 1 &&
-      route.legs[0].steps.length === 3
+      route.legs[0].steps.length <= 3
     );
   });
 
@@ -127,7 +134,7 @@ function createRouteScheduleStack(stopTimes, _color, label) {
     
     let cell = row.addStack();
     cell.backgroundColor = lineColor || colors.cellBackgroundColor
-    cell.setPadding(2, 3, 2, 3);
+    cell.setPadding(1, 2, 1, 2);
     cell.cornerRadius = 4;
 
     // Slice the "am" or "pm" from the time string
